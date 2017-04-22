@@ -64,16 +64,20 @@ Theta2_grad = zeros(size(Theta2));
 
 
 % Convert y to a matrix where each row is of the form [0 0 0 1 0 0 0 0], representing y(i)
-Y = full(sparse(1:m, y, ones(m,1)));
+% Y = full(sparse(1:m, y, ones(m,1)));
+Y = 1:num_labels == y;
 
-% Compute h(X)
-h1 = sigmoid([ones(m, 1) X] * Theta1');
-h2 = sigmoid([ones(m, 1) h1] * Theta2');
+% Compute h(X) and intermediate results
+a1 = [ones(m, 1) X];
+z2 = a1 * Theta1';
+a2 = [ones(m, 1) sigmoid(z2)];
+z3 = a2 * Theta2';
+a3 = sigmoid(z3);
 
 % Calculate cost function
-J = -1/m * sum(sum(Y .* log(h2) + (1-Y) .* log(1 - h2)));
+J = -1/m * sum(sum(Y .* log(a3) + (1-Y) .* log(1 - a3)));
 
-% Add regularization
+% Regularization
 reg1 = Theta1 .^ 2;
 reg1(:,1) = 0;
 
@@ -82,8 +86,23 @@ reg2(:,1) = 0;
 
 J += lambda/(2*m) * (sum(sum(reg1)) + sum(sum(reg2)));
 
+% Backpropagation
+for t = 1:m
+  delta_3 = (a3(t,:) - Y(t,:))';
+  delta_2 = (Theta2' * delta_3)(2:end) .* sigmoidGradient(z2(t,:)');
 
-% -------------------------------------------------------------
+  Theta1_grad += 1/m * delta_2 * a1(t,:);
+  Theta2_grad += 1/m * delta_3 * a2(t,:);
+end
+
+% Regularization in gradient
+reg_1 = lambda/m * Theta1;
+reg_1(:,1) = 0;
+Theta1_grad += reg_1;
+
+reg_2 = lambda/m * Theta2;
+reg_2(:,1) = 0;
+Theta2_grad += reg_2;
 
 % =========================================================================
 
