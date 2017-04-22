@@ -8,8 +8,8 @@ function [J grad] = nnCostFunction(nn_params, ...
 %   [J grad] = NNCOSTFUNCTON(nn_params, hidden_layer_size, num_labels, ...
 %   X, y, lambda) computes the cost and gradient of the neural network. The
 %   parameters for the neural network are "unrolled" into the vector
-%   nn_params and need to be converted back into the weight matrices. 
-% 
+%   nn_params and need to be converted back into the weight matrices.
+%
 %   The returned parameter grad should be a "unrolled" vector of the
 %   partial derivatives of the neural network.
 %
@@ -24,8 +24,8 @@ Theta2 = reshape(nn_params((1 + (hidden_layer_size * (input_layer_size + 1))):en
 
 % Setup some useful variables
 m = size(X, 1);
-         
-% You need to return the following variables correctly 
+
+% You need to return the following variables correctly
 J = 0;
 Theta1_grad = zeros(size(Theta1));
 Theta2_grad = zeros(size(Theta2));
@@ -46,12 +46,12 @@ Theta2_grad = zeros(size(Theta2));
 %         that your implementation is correct by running checkNNGradients
 %
 %         Note: The vector y passed into the function is a vector of labels
-%               containing values from 1..K. You need to map this vector into a 
+%               containing values from 1..K. You need to map this vector into a
 %               binary vector of 1's and 0's to be used with the neural network
 %               cost function.
 %
 %         Hint: We recommend implementing backpropagation using a for-loop
-%               over the training examples if you are implementing it for the 
+%               over the training examples if you are implementing it for the
 %               first time.
 %
 % Part 3: Implement regularization with the cost function and gradients.
@@ -63,21 +63,24 @@ Theta2_grad = zeros(size(Theta2));
 %
 
 
+% Convert y to a matrix where each row is of the form [0 0 0 1 0 0 0 0], representing y(i)
+Y = full(sparse(1:m, y, ones(m,1)));
 
+% Compute h(X)
+h1 = sigmoid([ones(m, 1) X] * Theta1');
+h2 = sigmoid([ones(m, 1) h1] * Theta2');
 
+% Calculate cost function
+J = -1/m * sum(sum(Y .* log(h2) + (1-Y) .* log(1 - h2)));
 
+% Add regularization
+reg1 = Theta1 .^ 2;
+reg1(:,1) = 0;
 
+reg2 = Theta2 .^ 2;
+reg2(:,1) = 0;
 
-
-
-
-
-
-
-
-
-
-
+J += lambda/(2*m) * (sum(sum(reg1)) + sum(sum(reg2)));
 
 
 % -------------------------------------------------------------
